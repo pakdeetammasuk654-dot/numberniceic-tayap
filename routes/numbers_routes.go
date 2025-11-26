@@ -9,16 +9,22 @@ import (
 )
 
 func SetupRoutes(app *fiber.App) {
-	// 1. เตรียม DB (สมมติว่า connect แล้วจาก database.DB)
 	db := database.DB
 
-	// 2. สร้าง Repository (Layer Database)
+	// --- ส่วนเดิม (SAT) ---
 	satNumRepo := repositories.NewSatNumRepository(db)
-
-	// 3. สร้าง Handler โดยส่ง Repo เข้าไป (Layer Logic/HTTP)
 	satNumHandler := handlers.NewSatNumHandler(satNumRepo)
 
-	// 4. กำหนด Route
+	// --- ส่วนใหม่ (SHA) เพิ่มตรงนี้ ---
+	shaNumRepo := repositories.NewShaNumRepository(db)
+	shaNumHandler := handlers.NewShaNumHandler(shaNumRepo)
+
 	api := app.Group("/api")
+
+	// Routes สำหรับ SAT
 	api.Get("/satnums/:key", satNumHandler.GetSatNum)
+
+	// Routes สำหรับ SHA (เพิ่มใหม่)
+	api.Get("/shanums/:key", shaNumHandler.GetShaNum)
+
 }
