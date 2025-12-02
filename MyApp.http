@@ -1,6 +1,40 @@
+###
+# RECOMMENDED: Get a comprehensive result for a full name.
+# This is the primary endpoint for the application.
 
+# Example with a Thai name
+GET http://localhost:3000/api/decode/ทญา
+
+### Example with a Thai full name (with space)
+GET http://localhost:3000/api/decode/อณัญญา
+
+### Example with an English full name
+GET http://localhost:3000/api/decode/John Doe
+
+ลเ
+
+###
+# --- Test Cases for Input Validation ---
+
+### This should FAIL (400 Bad Request) because of the number.
+GET http://localhost:3000/api/decode/John123
+
+### This should FAIL (400 Bad Request) because of the special character.
+GET http://localhost:3000/api/decode/ธญา!
+
+### This should FAIL (400 Bad Request) because of multiple spaces.
+GET http://localhost:3000/api/decode/John  Doe
+
+###
+# ----------------------------------------------------
+# Individual API tests (for debugging)
+# ----------------------------------------------------
+
+### Test SAT Number API for a single character
 GET http://localhost:3000/api/satnums/ก
-Accept: application/json
 
-### Get SHA Num
+### This should FAIL (400 Bad Request) because this endpoint only accepts a single key.
+GET http://localhost:3000/api/satnums/กข
+
+### Test SHA Number API for a single character
 GET http://localhost:3000/api/shanums/ก

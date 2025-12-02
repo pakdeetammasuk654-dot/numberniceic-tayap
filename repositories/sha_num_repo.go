@@ -6,26 +6,24 @@ import (
 	"gorm.io/gorm"
 )
 
-// 1. Interface
-type ShaNumRepository interface {
-	GetByKey(key string) (*models.ShaNum, error)
-}
-
-// 2. Implementation
+// shaNumRepository is the unexported, concrete implementation.
 type shaNumRepository struct {
 	db *gorm.DB
 }
 
-func NewShaNumRepository(db *gorm.DB) ShaNumRepository {
+// NewShaNumRepository is the exported constructor.
+// It now returns the public interface type.
+func NewShaNumRepository(db *gorm.DB) NumericRepository {
 	return &shaNumRepository{db: db}
 }
 
-func (r *shaNumRepository) GetByKey(key string) (*models.ShaNum, error) {
+// GetByKey implements the NumericRepository interface.
+func (s *shaNumRepository) GetByKey(key string) (models.NumericValue, error) {
 	var shaNum models.ShaNum
-	// ค้นหาจากตาราง sha_nums
-	result := r.db.Where("char_key = ?", key).First(&shaNum)
+	result := s.db.Where("char_key = ?", key).First(&shaNum)
+
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return &shaNum, nil
+	return shaNum, nil
 }

@@ -1,0 +1,311 @@
+<style>
+    #search-form {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    #name-input {
+        padding: 0.5rem;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 300px;
+    }
+    #search-button {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        border: none;
+        border-radius: 4px;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+    }
+    #summary-container {
+        margin-bottom: 2.5rem;
+    }
+    .summary-card {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    }
+    .summary-card.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .summary-card h3 {
+        text-align: center;
+        margin-top: 0;
+        font-size: 1.5rem;
+    }
+    /* --- New Styles for Pair Circles --- */
+    .pair-circles-container {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #eee;
+        flex-wrap: wrap;
+    }
+    .pair-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        flex-shrink: 0;
+    }
+    .summary-values {
+        display: flex;
+        justify-content: space-around;
+        text-align: center;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1.5rem;
+    }
+    .summary-values h4 {
+        color: #555;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+    .summary-values .value {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #28a745;
+        margin: 0;
+    }
+    .summary-values .raw-value {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    .interpretations-section {
+        display: flex;
+        justify-content: space-around;
+        padding-top: 1.5rem;
+        gap: 2rem;
+    }
+    .interpretation-group {
+        width: 45%;
+    }
+    .interpretation-group h4 {
+        text-align: center;
+        color: #333;
+    }
+    .interpretation-list {
+        list-style: none;
+        padding: 0;
+    }
+    .interpretation-item {
+        background-color: #f9f9f9;
+        border-radius: 5px;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        border-left: 5px solid;
+    }
+    .interpretation-item .item-header {
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+    }
+    .interpretation-item .item-header .pair-type {
+        display: inline-block;
+        background-color: #6c757d;
+        color: white;
+        padding: 0.1rem 0.4rem;
+        border-radius: 3px;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+    .interpretation-item .item-desc {
+        font-style: italic;
+        color: #555;
+        margin-top: 0.25rem;
+    }
+    #results-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+        margin-top: 2.5rem;
+        border-top: 2px dashed #ddd;
+        padding-top: 2.5rem;
+    }
+    .character-group h3 { margin-top: 0; margin-bottom: 1rem; font-size: 2rem; }
+    .cards-wrapper { display: flex; gap: 2rem; flex-wrap: wrap; }
+    .result-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 1.5rem;
+        width: 280px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        background-color: #fff;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    }
+    .result-card.visible { opacity: 1; transform: translateY(0); }
+    .result-card h4 { margin-top: 0; color: #333; border-bottom: 2px solid #f2f2f2; padding-bottom: 0.5rem; }
+    .result-card .value { font-weight: bold; font-size: 2.5rem; color: #007bff; text-align: center; margin: 1rem 0; }
+    .error { color: #dc3545; text-align: center; }
+</style>
+
+<h2>Decode Name and Find Numbers</h2>
+<form id="search-form">
+    <input type="text" id="name-input" placeholder="Enter name to decode..." required>
+    <button type="submit" id="search-button">Decode</button>
+</form>
+
+<div id="summary-container"></div>
+<div id="results-container"></div>
+
+<script>
+    const form = document.getElementById('search-form');
+    const nameInput = document.getElementById('name-input');
+    const summaryContainer = document.getElementById('summary-container');
+    const resultsContainer = document.getElementById('results-container');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = nameInput.value.trim();
+        if (!name) return;
+
+        summaryContainer.innerHTML = '';
+        resultsContainer.innerHTML = '<p>Decoding and fetching results...</p>';
+
+        const apiUrl = `/api/decode/${encodeURIComponent(name)}`;
+
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error(`API returned status ${response.status}`);
+            
+            const result = await response.json();
+            displaySummary(result);
+            displayAllResults(result.breakdown);
+
+        } catch (error) {
+            resultsContainer.innerHTML = `<p class="error">An unexpected error occurred.</p>`;
+            console.error('Fetch error:', error);
+        }
+    });
+
+    function displaySummary(result) {
+        const summaryCard = document.createElement('div');
+        summaryCard.className = 'summary-card';
+
+        // Helper to create colored circles
+        const createCirclesHtml = (interpretations) => {
+            if (!interpretations || interpretations.length === 0) return '';
+            return interpretations.map(item => 
+                `<div class="pair-circle" style="background-color: ${item.color_code};" title="Type: ${item.pair_type.trim()} | Score: ${item.score}">${item.pair_number}</div>`
+            ).join('');
+        };
+
+        // Helper to create detailed list items
+        const createInterpretationsListHtml = (interpretations) => {
+            if (!interpretations || interpretations.length === 0) return '<li>No meanings found.</li>';
+            return interpretations.map(item => `
+                <li class="interpretation-item" style="border-left-color: ${item.color_code};">
+                    <div class="item-header">
+                        Pair: ${item.pair_number} (Score: ${item.score})
+                        <span class="pair-type">${item.pair_type.trim()}</span>
+                    </div>
+                    <div>${item.meaning}</div>
+                    <div class="item-desc">${item.description}</div>
+                </li>
+            `).join('');
+        };
+
+        const allCirclesHtml = createCirclesHtml(result.sat_result.interpretations) + createCirclesHtml(result.sha_result.interpretations);
+
+        summaryCard.innerHTML = `
+            <h3>Summary for "${result.name}"</h3>
+            
+            <!-- New Circles Section -->
+            <div class="pair-circles-container">
+                ${allCirclesHtml || '<span>No number pairs found.</span>'}
+            </div>
+
+            <!-- Score Section -->
+            <div class="summary-values">
+                <div>
+                    <h4>Total SatNum Score</h4>
+                    <p class="value">${result.sat_result.total_score}</p>
+                    <p class="raw-value">(Raw Sum: ${result.raw_total_sat_value})</p>
+                </div>
+                <div>
+                    <h4>Total ShaNum Score</h4>
+                    <p class="value">${result.sha_result.total_score}</p>
+                    <p class="raw-value">(Raw Sum: ${result.raw_total_sha_value})</p>
+                </div>
+            </div>
+
+            <!-- Details Section -->
+            <div class="interpretations-section">
+                <div class="interpretation-group">
+                    <h4>SatNum Meanings</h4>
+                    <ul class="interpretation-list">${createInterpretationsListHtml(result.sat_result.interpretations)}</ul>
+                </div>
+                <div class="interpretation-group">
+                    <h4>ShaNum Meanings</h4>
+                    <ul class="interpretation-list">${createInterpretationsListHtml(result.sha_result.interpretations)}</ul>
+                </div>
+            </div>
+        `;
+        summaryContainer.appendChild(summaryCard);
+        setTimeout(() => summaryCard.classList.add('visible'), 10);
+    }
+
+    function displayAllResults(breakdown) {
+        resultsContainer.innerHTML = '';
+        if (!breakdown || breakdown.length === 0) {
+            resultsContainer.innerHTML = '<p>No character breakdown found.</p>';
+            return;
+        }
+        breakdown.forEach((result, groupIndex) => {
+            const { char, sat_data, sha_data } = result;
+            if (char === ' ') return;
+
+            const groupEl = document.createElement('div');
+            groupEl.className = 'character-group';
+            groupEl.innerHTML = `<h3>Character: "${char}"</h3>`;
+
+            const cardsWrapper = document.createElement('div');
+            cardsWrapper.className = 'cards-wrapper';
+
+            const satCard = createCard('SatNum', sat_data);
+            const shaCard = createCard('ShaNum', sha_data);
+
+            cardsWrapper.appendChild(satCard);
+            cardsWrapper.appendChild(shaCard);
+            groupEl.appendChild(cardsWrapper);
+            resultsContainer.appendChild(groupEl);
+
+            const delay = 200;
+            setTimeout(() => satCard.classList.add('visible'), delay + (groupIndex * 2 + 0) * 150);
+            setTimeout(() => shaCard.classList.add('visible'), delay + (groupIndex * 2 + 1) * 150);
+        });
+    }
+
+    function createCard(apiName, data) {
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        const valueKey = apiName.substring(0, 3).toLowerCase() + '_value';
+        let value = 0;
+        if (data && !data.error) {
+            value = data[valueKey];
+        }
+        card.innerHTML = `<h4>${apiName} Result</h4><p class="value">${value}</p>`;
+        return card;
+    }
+</script>

@@ -1,0 +1,71 @@
+<style>
+    .api-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    .api-table th, .api-table td {
+        border: 1px solid #ddd;
+        padding: 0.8rem;
+        text-align: left;
+    }
+    .api-table th {
+        background-color: #f7f7f7;
+    }
+    .api-table .method {
+        font-weight: bold;
+        color: #fff;
+        padding: 0.3rem 0.6rem;
+        border-radius: 4px;
+        text-align: center;
+    }
+    .method.get { background-color: #007bff; }
+    .api-table .url {
+        font-family: monospace;
+        background-color: #e9ecef;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+    }
+    .api-table .description {
+        font-size: 0.95rem;
+    }
+    .api-table .primary {
+        border-left: 4px solid #007bff;
+    }
+</style>
+
+<h2>System API Endpoints</h2>
+<p>Here is a list of available API endpoints in the system.</p>
+
+<table class="api-table">
+    <thead>
+        <tr>
+            <th>Method</th>
+            <th>URL Pattern</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="primary">
+            <td><span class="method get">GET</span></td>
+            <td><code class="url">/api/decode/:name</code></td>
+            <td class="description">
+                <strong>Primary Endpoint.</strong> Receives a name and returns a comprehensive result containing both the <strong>total sum</strong> and a <strong>detailed breakdown</strong> for each character. This is the only endpoint needed for the main application logic.
+            </td>
+        </tr>
+        <tr>
+            <td><span class="method get">GET</span></td>
+            <td><code class="url">/api/satnums/:key</code></td>
+            <td class="description">
+                Returns the SatNum value for a single character. (For debugging or specific use cases)
+            </td>
+        </tr>
+        <tr>
+            <td><span class="method get">GET</span></td>
+            <td><code class="url">/api/shanums/:key</code></td>
+            <td class="description">
+                Returns the ShaNum value for a single character. (For debugging or specific use cases)
+            </td>
+        </tr>
+    </tbody>
+</table>

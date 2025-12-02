@@ -11,20 +11,27 @@ import (
 func SetupRoutes(app *fiber.App) {
 	db := database.DB
 
-	// --- ส่วนเดิม (SAT) ---
+	// --- Repositories ---
 	satNumRepo := repositories.NewSatNumRepository(db)
-	satNumHandler := handlers.NewSatNumHandler(satNumRepo)
-
-	// --- ส่วนใหม่ (SHA) เพิ่มตรงนี้ ---
 	shaNumRepo := repositories.NewShaNumRepository(db)
-	shaNumHandler := handlers.NewShaNumHandler(shaNumRepo)
+	// Create the new repository for number meanings
+	meaningRepo := repositories.NewNumberMeaningRepository(db)
 
+	// --- Handlers ---
+	// Update the DecodeHandler to accept the new repository
+	decodeHandler := handlers.NewDecodeHandler(satNumRepo, shaNumRepo, meaningRepo)
+
+	// --- View Routes ---
+	app.Get("/", handlers.APIList)
+	app.Get("/search", handlers.SearchPage)
+
+	// --- API Routes ---
 	api := app.Group("/api")
 
-	// Routes สำหรับ SAT
-	api.Get("/satnums/:key", satNumHandler.GetSatNum)
+	// The single, powerful endpoint for decoding and summing.
+	api.Get("/decode/:name", decodeHandler.DecodeName)
 
-	// Routes สำหรับ SHA (เพิ่มใหม่)
-	api.Get("/shanums/:key", shaNumHandler.GetShaNum)
-
+	// The individual routes for debugging.
+	api.Get("/satnums/:key", handlers.NewGenericNumHandler(satNumRepo))
+	api.Get("/shanums/:key", handlers.NewGenericNumHandler(shaNumRepo))
 }

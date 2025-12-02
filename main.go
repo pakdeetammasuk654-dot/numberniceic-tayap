@@ -6,6 +6,7 @@ import (
 	"numberniceic/routes"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/template/html/v2"
 	"github.com/joho/godotenv"
 )
 
@@ -14,7 +15,14 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 	database.ConnectDb()
-	app := fiber.New()
+
+	// Initialize template engine
+	engine := html.New("./views", ".gohtml")
+
+	app := fiber.New(fiber.Config{
+		Views: engine,
+	})
+
 	routes.SetupRoutes(app)
 	log.Fatal(app.Listen(":3000"))
 }
